@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>2048</title>
+<style type="text/css">
+	body,div,ul,li{padding: 0;margin: 0;}
+	body{
+		background-color: green;
+	}
+	div{
+		width: 320px;
+		margin: 100px auto;
+	}
+	ul{
+		width: 320px;
+	}
+	li{
+		list-style: none;
+		width: 60px;
+		height: 60px;
+		margin: 5px;
+		background: orange;
+		color: white;
+		font-size: 24px;
+		line-height: 60px;
+		text-align: center;
+		font-weight: bold;
+		border-radius: 5px;
+		float: left;
+	}
+</style>
+<script type="text/javascript" src="jquery-1.10.1.min.js"></script>
+</head>
+<body>
+<div>
+	<ul>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+	</ul>
+	<ul>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+	</ul>
+	<ul>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+	</ul>
+	<ul>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+	</ul>
+</div>
+<script type="text/javascript">
+$(function(){
+	//定义一个二维数组储存数据
+	var data = new Array();	//先定义一维
+	for(var i=0;i<4;i++){
+		data[i] = new Array();	//再定义第二维	
+		for(var j=0;j<4;j++){
+			data[i][j] = 0;
+		}	
+	}
+
+	//随机生成数字2或4
+	function cNum(){
+		var cNum = [2,4];
+		var c =  Math.round(Math.random());
+		return cNum[c];
+	}
+
+	//随机生成产生数字的位置
+	function rdNum(){
+		var arr = [];
+		for(var i=0;i<4;i++){
+			for(var j=0;j<4;j++){
+				if(data[i][j] == 0) arr.push(4*i+j);
+			}
+		}
+		// $('li').each(function(i,elem){	//这里不能用下面这条语句做判断，因为此时只是在data数组中的数据做了修改，li的html并没有修改
+		// 	if($(elem).html() == 0) arr.push(i);
+		// });
+		var len = arr.length;
+		var num = Math.floor(Math.random()*len);
+		$('li').eq(arr[num]).html(cNum());
+		var x= parseInt(arr[num]/4);
+		var y = arr[num]%4;
+		data[x][y] = $('li').eq(arr[num]).html();
+	}
+	rdNum();
+	rdNum();
+
+	$(document).keyup(function(ev){
+		if(ev.keyCode == 37){	//向左
+			to_left();
+		}
+		if(ev.keyCode == 39){	//向右
+			to_right();
+		}
+		if(ev.keyCode == 38){	//向上
+			to_up();
+		}
+		if(ev.keyCode == 40){	//向下
+			to_down();
+		}
+		if(ev.keyCode != 116)
+			rdNum();
+		show();
+	});
+	//向左
+	function to_left(){
+		var _blank = 0;		
+		for(var i=0;i<4;i++){	//i代表行
+			_blank = 3;			//记录每一行最左边的空白位置
+			for(var j=0;j<3;j++){	//j代表列
+				if( data[i][j] != 0 ){
+					if(data[i][j]==data[i][j+1]){
+						data[i][j] = 2*data[i][j];
+						data[i][j+1] = 0;
+					}
+				}else{	//data[i][j] == 0
+					if(j<_blank) _blank =j;
+					if(data[i][j+1] != 0){
+						data[i][_blank] = data[i][j+1];
+						data[i][j+1] = 0;
+						if(_blank != 0){
+							if(data[i][_blank] == data[i][_blank-1]){
+								data[i][_blank-1] = 2*data[i][_blank];
+								data[i][_blank] = 0;
+								_blank--;
+							}
+						}
+						_blank ++;
+					}
+				}
+			}
+		}
+	}
+	//向右
+	function to_right(){
+		var _blank = 0;
+		for(var i=0;i<4;i++){	//i代表行
+			_blank = 0;			//记录每一行最右边的空白位置
+			for(var j=3;j>0;j--){	//j代表列
+				if( data[i][j] != 0 ){
+					if(data[i][j]==data[i][j-1]){
+						data[i][j] = 2*data[i][j];
+						data[i][j-1] = 0;
+					}
+				}else{	//data[i][j] == 0
+					if(j>_blank) _blank =j;
+					if(data[i][j-1] != 0){
+						data[i][_blank] = data[i][j-1];
+						data[i][j-1] = 0;
+						if(_blank != 3){
+							if(data[i][_blank] == data[i][_blank+1]){
+								data[i][_blank+1] = 2*data[i][_blank];
+								data[i][_blank] = 0;
+								_blank++;
+							}
+						}
+						_blank --;
+					}
+				}
+			}
+		}
+	}
+	//向上
+	function to_up(){
+		var _blank = 0;
+		for(var i=0;i<4;i++){	//i代表列
+			_blank = 3;			//记录每一列最上边的空白位置
+			for(var j=0;j<3;j++){	//j代表行
+				if( data[j][i] != 0 ){
+					if(data[j][i]==data[j+1][i]){
+						data[j][i] = 2*data[j][i];
+						data[j+1][i] = 0;
+					}
+				}else{	//data[j][i] == 0
+					if(j<_blank) _blank =j;
+					if(data[j+1][i] != 0){
+						data[_blank][i] = data[j+1][i];
+						data[j+1][i] = 0;
+						if(_blank != 0){
+							if(data[_blank][i] == data[_blank-1][i]){
+								data[_blank-1][i] = 2*data[_blank][i];
+								data[_blank][i] = 0;
+								_blank--;
+							}
+						}
+						_blank ++;
+					}
+				}
+			}
+		}
+	}
+	//向下
+	function to_down(){
+		var _blank = 0;
+		for(var i=0;i<4;i++){	//i代表列
+			_blank = 0;			//记录每一列最下边的空白位置
+			for(var j=3;j>0;j--){	//j代表行
+				if( data[j][i] != 0 ){
+					if(data[j][i]==data[j-1][i]){
+						data[j][i] = 2*data[j][i];
+						data[j-1][i] = 0;
+					}
+				}else{	//data[j][i] == 0
+					if(j>_blank) _blank =j;
+					if(data[j-1][i] != 0){
+						data[_blank][i] = data[j-1][i];
+						data[j-1][i] = 0;
+						if(_blank != 3){
+							if(data[_blank][i] == data[_blank+1][i]){
+								data[_blank+1][i] = 2*data[_blank][i];
+								data[_blank][i] = 0;
+								_blank++;
+							}
+						}
+						_blank --;
+					}
+				}
+			}
+		}
+	}
+	//向方格中填充数据
+	function show(){
+		$('li').html('');	//先把所有li的html清空，否则，在给li重新赋值时，因为会出现data[i][j]已经为0.但li的html不为零，li保留原来的值的问题
+		for(var i=0;i<4;i++){
+			for(var j=0;j<4;j++){
+				if(data[i][j] === 0) continue;
+				var _index = 4*i+j;
+				$('li').eq(_index).html(data[i][j]);
+			}
+		}
+	}
+});
+</script>
+</body>
+</html>
