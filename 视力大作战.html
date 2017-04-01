@@ -8,11 +8,9 @@ body,ul,li{margin: 0;padding: 0;}
 ul{
 	width: 600px;
 	height: 600px;
-	margin: 10px auto;
+	margin: 20px auto;
 }
 li{
-	width: 60px;
-	height: 60px;
 	list-style: none;
 	float: left;
 }
@@ -26,20 +24,21 @@ li{
 
 <script type="text/javascript">
 $(function(){
-	var num = 10;		//一行4个li
+	var units = 60;		//li的宽高
+	var num = 10;		//一行20个li
+	//var row = 10;		//行数
 	var index = 0;		//li颜色的索引
-	var bgColor = ['#7711BB','#22AA22','#66CC00','#11AACC'];
-	var activeColor = ['#7711EE','#22AA55','#66CC33','#11AAFF'];
+	var bgColor = ['#7711BB','#22AA22','#66CC00','#11AACC','#445500','#33BB99'];
+	var activeColor = ['#7711EE','#22AA55','#66CC33','#11AAFF','#445533','#33BB33'];
 	function addColor(){
 		$('ul').html('');
 		var str = '';
-		//var xNum = $('ul').css('width')
 		for(var i=0;i<num*num;i++){
 			str += '<li></li>';
 		}
 		$('ul').html(str);
-		// $('li').css('width',units);
-		// $('li').css('height',units);
+		$('li').css('width',units);
+		$('li').css('height',units);
 
 		index = Math.floor(Math.random()*bgColor.length);
 		$('li').css('background',bgColor[index]);
@@ -47,12 +46,13 @@ $(function(){
 		var active = Math.floor(Math.random()*num*num);
 		$('li').eq(active).css('background',activeColor[index]);
 		$('li').eq(active).addClass('active');
-		// if(units == 10){
-		// 	units = 10;
-		// }else{
-		// 	units -= 10;
-		// 	num = 800/units;
-		// }
+		if(units == 20){
+			units = 20;
+		}else{
+			units -= 10;
+			num = 600/units;
+			//num = 600/units;
+		}
 	}
 	addColor();
 
