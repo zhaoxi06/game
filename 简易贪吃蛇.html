@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>简易贪吃蛇效果</title>
+<style type="text/css">
+body,div,ul,li{
+	padding: 0;
+	margin: 0;
+}
+body{
+	background: url(img/tcs.jpg);
+	background-size: cover;
+}
+div{
+	width: 1200px;
+	height: 600px;
+	background-color: rgba(0, 0, 0, 0.2);
+	margin: 20px 80px;
+	position: relative;
+}
+li{
+	list-style: none;
+	width: 50px;
+	height: 50px;
+	background: #FCE4DA;
+	position: absolute;
+	top:0;
+	color: #fff;
+	text-align: center;
+	line-height: 50px;
+	font-size: 14px;
+	border-radius: 50%;
+}
+</style>
+<script src="jquery-1.10.1.min.js"></script>
+<script type="text/javascript">
+$(function(){
+	var $liWidth = $('li').width();
+	var len = $('ul li').length;
+	$('li').each(function(i,elem){
+		$(elem).css('left',i*$liWidth);
+	});
+	$('li').css('top',0);
+
+	var foodLeft = 0;
+	var foodTop = 0;
+	createFood();
+	
+	var timer = null;
+	var $li = $('ul li').eq(0);
+    $(document).on('keydown',function(ev){
+        clearInterval(timer);
+        var distance = 0;
+        timer = setInterval(function(){
+            len = $('ul li').length;
+        	//碰撞检测
+        	var $liLeft = $li.position().left;
+        	var $liTop = $li.position().top;
+        	for(var i=1;i<$('ul li').length;i++){
+        		if(ev.keyCode == 40 && $liLeft==$('ul li').eq(i).position().left && $liTop+$liWidth==$('ul li').eq(i).position().top){		
+        		//向下的时候相撞
+		    	    clearInterval(timer);
+		    	    alert('撞疼我了，呜呜~~~');
+		    	    return false;
+        		}
+        		if(ev.keyCode == 38 && $liLeft==$('ul li').eq(i).position().left && $liTop-$liWidth==$('ul li').eq(i).position().top){		
+        		//向上的时候相撞
+		    	    clearInterval(timer);
+		    	    alert('干嘛撞我，哼~');
+		    	    return false;
+        		}
+        		if(ev.keyCode == 39 && $liTop==$('ul li').eq(i).position().top && $liLeft+$liWidth==$('ul li').eq(i).position().left){		
+        		//向右的时候相撞
+		    	    clearInterval(timer);
+		    	    alert('别撞我！');
+		    	    return false;
+        		}
+        		if(ev.keyCode == 37 && $liTop==$('ul li').eq(i).position().top && $liLeft-$liWidth==$('ul li').eq(i).position().left){		
+        		//向左的时候相撞
+		    	    clearInterval(timer);
+		    	    alert('干嘛撞我，哼~');
+		    	    return false;
+        		}
+        	}
+
+            for(var i=0;i<$('ul li').length;i++){
+        		$('ul li').eq(i).attr('oldLeft',$('ul li').eq(i).position().left);
+        		$('ul li').eq(i).attr('oldTop',$('ul li').eq(i).position().top);
+            	if(i==0){
+            		switch(ev.keyCode){
+            		    case 37:    //向左
+            		    	if($li.position().left-$liWidth<0){
+            		    	    clearInterval(timer);
+            		    	    alert('嗷~撞墙了~~');
+            		    	    return false;
+            		    	}
+            		        $li.css('left',$li.position().left-$liWidth);
+            		        break;
+            		    case 38:    //向上
+            		    	console.log($li.position().top);
+            		        if(($li.position().top-$liWidth)<0){
+            		        	clearInterval(timer);
+            		        	alert('嗷~撞墙了~~');
+            		        	return false;
+            		        }
+            		        $li.css('top',$li.position().top-$liWidth);
+            		        break;
+            		    case 39:    //向右
+            		    	distance = $('div').width() - ($li.position().left+$liWidth);
+            		    	if(distance<$liWidth){
+            		    	    clearInterval(timer);
+            		    	    alert('嗷~撞墙了~~');
+            		    	    return false;
+            		    	}
+            		        $li.css('left',$li.position().left+$liWidth);
+            		        break;
+            		    case 40:    //向下
+            		    	distance = $('div').height() - ($li.position().top+$liWidth);
+            		    	if(distance<$liWidth){
+            		    		clearInterval(timer);
+            		    		alert('嗷~撞墙了~~');
+            		    		return false;
+            		    	}
+            		        $li.css('top', $li.position().top+$liWidth);
+            		        break;
+            		}
+            	}else{
+            		$('ul li').eq(i).css('top',$('ul li').eq(i-1).attr('oldTop')+'px');
+            		$('ul li').eq(i).css('left',$('ul li').eq(i-1).attr('oldLeft')+'px');
+            	}
+            }
+            if($li.position().left == foodLeft && $li.position().top == foodTop){
+            	$('ul').next().appendTo($('ul'));
+            	createFood();
+            }
+
+        },400);
+    });
+
+    //随机生成一个食物的位置
+    function randomPosition(){
+    	foodLeft = Math.floor(Math.random()*24)*$liWidth;
+    	foodTop = Math.floor(Math.random()*12)*$liWidth;
+    }
+
+    //创建一个食物
+   function createFood(){
+   		randomPosition();
+   		$('ul li').each(function(i,elem){
+   			if(foodLeft == $(elem).position().left && foodTop == $(elem).position().top){
+   				randomPosition();
+   			}
+   		})
+   		var $newLi = $('<li>');
+   		$newLi.css({left:foodLeft,top:foodTop});
+   		$newLi.appendTo($('div'));
+   }
+
+
+});
+</script>
+</head>
+<body>
+<div>
+	<ul>
+		<li></li>
+		<li></li>
+		<li></li>
+	</ul>
+</div>
+</body>
+</html>
