@@ -4,170 +4,216 @@
 	<meta charset="UTF-8">
 	<title>简易贪吃蛇效果</title>
 <style type="text/css">
-body,div,ul,li{
+body,div,ul,li,h3,p,span{
 	padding: 0;
 	margin: 0;
 }
 body{
-	background: url(img/tcs.jpg);
-	background-size: cover;
+    background-color: #345;
 }
-div{
-	width: 1200px;
-	height: 600px;
-	background-color: rgba(0, 0, 0, 0.2);
-	margin: 20px 80px;
-	position: relative;
+div#container{
+	width: 58em;
+	height: 36em;
+	margin: 1em auto;
+}
+div#introduce{
+    width: 8em;
+    height: 12em;
+    border:2px solid #333;
+    background-color: #abc;
+    padding: .2em;
+    float: left;
+}
+div#introduce h3{
+    margin-bottom: .5em;
+}
+div#game{
+    width: 48em;
+    height: 38em;
+    border: 2px solid #333;
+    background-color: #abc;
+    float: left;
+    border-radius: 10px;
+    box-shadow: 2px 2px 3px #111;
+}
+div#game p{
+    height: 2em;
+    line-height: 2em;
+    text-indent: 1em;
+}
+div#map{
+    width: 100%;
+    height: 36em;
+    background-color: #789;
+    position: relative;
 }
 li{
 	list-style: none;
-	width: 50px;
-	height: 50px;
-	background: #FCE4DA;
+	width: 16px;
+	height: 16px;
+	background: #123;
 	position: absolute;
 	top:0;
 	color: #fff;
-	text-align: center;
-	line-height: 50px;
-	font-size: 14px;
 	border-radius: 50%;
 }
+ul li:first-child{
+    background-image: url(img/head.gif);
+    background-size: 16px 16px;
+    /*transform: rotate(180deg)!important;
+    -webkit-transform:rotate(180deg);*/
+}
+.left{
+    transform: rotate(180deg);
+}
+.up{
+    transform: rotate(-90deg);
+}
+.down{
+    transform: rotate(90deg);
+}
 </style>
+</head>
+<body>
+<div id="container">
+    <div id="introduce">
+        <h3>贪吃蛇</h3>
+        <p>
+        键盘的↑ → ↓ ←控制方向，吃到食物身体变长，并且+3分,碰到自己或者墙游戏结束。按任一方向键开始游戏。
+        </p>
+    </div>
+    <div id="game">
+        <p>
+            分数：<span>0</span>
+        </p>
+        <div id="map">
+            <ul>
+                <li></li>
+                <li></li>
+                <li></li>
+            </ul>
+        </div>
+    </div>
+</div>
 <script src="jquery-1.10.1.min.js"></script>
 <script type="text/javascript">
 $(function(){
-	var $liWidth = $('li').width();
-	var len = $('ul li').length;
-	$('li').each(function(i,elem){
-		$(elem).css('left',i*$liWidth);
-	});
-	$('li').css('top',0);
+    var $liWidth = $('li').width();
+    var len = $('ul li').length;
+    $('li').each(function(i,elem){
+        $(elem).css('left',(len-i-1)*$liWidth);
+    });
+    $('li').css('top',0);
 
-	var foodLeft = 0;
-	var foodTop = 0;
-	createFood();
-	
-	var timer = null;
-	var $li = $('ul li').eq(0);
+    var foodLeft = 0;
+    var foodTop = 0;
+    createFood();
+    
+    var timer = null;
+    var nowdir;
+    var die = false;
+    var $li = $('ul li').eq(0);
     $(document).on('keydown',function(ev){
         clearInterval(timer);
-        var distance = 0;
+        if(die) return false;
+        var dir = forwardDir(ev.which);
+        if(nowdir){
+            if((nowdir=="left"&&dir=="right")||(nowdir=="right"&&dir=="left")||(nowdir=="up"&&dir=="down")||(nowdir=="down"&&dir=="up")){
+                nowdir = nowdir;
+            }else{
+                nowdir = dir;
+            }
+        }else{
+            nowdir = dir;
+        }
         timer = setInterval(function(){
             len = $('ul li').length;
-        	//碰撞检测
-        	var $liLeft = $li.position().left;
-        	var $liTop = $li.position().top;
-        	for(var i=1;i<$('ul li').length;i++){
-        		if(ev.keyCode == 40 && $liLeft==$('ul li').eq(i).position().left && $liTop+$liWidth==$('ul li').eq(i).position().top){		
-        		//向下的时候相撞
-		    	    clearInterval(timer);
-		    	    alert('撞疼我了，呜呜~~~');
-		    	    return false;
-        		}
-        		if(ev.keyCode == 38 && $liLeft==$('ul li').eq(i).position().left && $liTop-$liWidth==$('ul li').eq(i).position().top){		
-        		//向上的时候相撞
-		    	    clearInterval(timer);
-		    	    alert('干嘛撞我，哼~');
-		    	    return false;
-        		}
-        		if(ev.keyCode == 39 && $liTop==$('ul li').eq(i).position().top && $liLeft+$liWidth==$('ul li').eq(i).position().left){		
-        		//向右的时候相撞
-		    	    clearInterval(timer);
-		    	    alert('别撞我！');
-		    	    return false;
-        		}
-        		if(ev.keyCode == 37 && $liTop==$('ul li').eq(i).position().top && $liLeft-$liWidth==$('ul li').eq(i).position().left){		
-        		//向左的时候相撞
-		    	    clearInterval(timer);
-		    	    alert('干嘛撞我，哼~');
-		    	    return false;
-        		}
-        	}
+            //判断有没有跟自己碰撞，蛇头下一刻的位置会不会跟自身重合
+            var $liLeft = $li.position().left;
+            var $liTop = $li.position().top;
+            if(nowdir == "down"){
+                var x = $liLeft;
+                var y = $liTop+$liWidth; 
+                $li.attr("class","down");
+            }
+            if(nowdir == "up"){
+                var x = $liLeft;
+                var y = $liTop-$liWidth; 
+                $li.attr("class","up");
+            }
+            if(nowdir == "right"){
+                var x = $liLeft+$liWidth;
+                var y = $liTop; 
+                $li.attr("class","");
+            }
+            if(nowdir == "left"){
+                var x = $liLeft-$liWidth;
+                var y = $liTop; 
+                $li.attr("class","left");
+            }
+            if(x<0 || x>$("#map").width()-$("li").width() || y<0 || y>$("#map").height()-$("li").height()){
+                clearInterval(timer);
+                alert("嗷~撞墙了");
+                die = true;
+                return false;
+            }
+            for(var i=0;i<$('ul li').length-1;i++){
+                if(x == $('ul li').eq(i).position().left && y == $('ul li').eq(i).position().top){
+                    clearInterval(timer);
+                    die = true;
+                    alert("撞自己了，傻不傻");
+                    return false;
+                }
+            }
 
             for(var i=0;i<$('ul li').length;i++){
-        		$('ul li').eq(i).attr('oldLeft',$('ul li').eq(i).position().left);
-        		$('ul li').eq(i).attr('oldTop',$('ul li').eq(i).position().top);
-            	if(i==0){
-            		switch(ev.keyCode){
-            		    case 37:    //向左
-            		    	if($li.position().left-$liWidth<0){
-            		    	    clearInterval(timer);
-            		    	    alert('嗷~撞墙了~~');
-            		    	    return false;
-            		    	}
-            		        $li.css('left',$li.position().left-$liWidth);
-            		        break;
-            		    case 38:    //向上
-            		    	console.log($li.position().top);
-            		        if(($li.position().top-$liWidth)<0){
-            		        	clearInterval(timer);
-            		        	alert('嗷~撞墙了~~');
-            		        	return false;
-            		        }
-            		        $li.css('top',$li.position().top-$liWidth);
-            		        break;
-            		    case 39:    //向右
-            		    	distance = $('div').width() - ($li.position().left+$liWidth);
-            		    	if(distance<$liWidth){
-            		    	    clearInterval(timer);
-            		    	    alert('嗷~撞墙了~~');
-            		    	    return false;
-            		    	}
-            		        $li.css('left',$li.position().left+$liWidth);
-            		        break;
-            		    case 40:    //向下
-            		    	distance = $('div').height() - ($li.position().top+$liWidth);
-            		    	if(distance<$liWidth){
-            		    		clearInterval(timer);
-            		    		alert('嗷~撞墙了~~');
-            		    		return false;
-            		    	}
-            		        $li.css('top', $li.position().top+$liWidth);
-            		        break;
-            		}
-            	}else{
-            		$('ul li').eq(i).css('top',$('ul li').eq(i-1).attr('oldTop')+'px');
-            		$('ul li').eq(i).css('left',$('ul li').eq(i-1).attr('oldLeft')+'px');
-            	}
+                $('ul li').eq(i).attr('oldLeft',$('ul li').eq(i).position().left);
+                $('ul li').eq(i).attr('oldTop',$('ul li').eq(i).position().top);
+                if(i!=0){
+                    $('ul li').eq(i).css('top',$('ul li').eq(i-1).attr('oldTop')+'px');
+                    $('ul li').eq(i).css('left',$('ul li').eq(i-1).attr('oldLeft')+'px');
+                }
             }
+            $li.css("left",x + "px");
+            $li.css("top",y + "px");
+
             if($li.position().left == foodLeft && $li.position().top == foodTop){
-            	$('ul').next().appendTo($('ul'));
-            	createFood();
+                $('ul').next().appendTo($('ul'));
+                addScore();
+                createFood();
             }
 
-        },400);
+        },200);
     });
-
+    //根据键盘按键返回方向
+    function forwardDir(key){
+        if(key == 37) return "left";
+        if(key == 38) return "up";
+        if(key == 39) return "right";
+        if(key == 40) return "down";
+    }
     //随机生成一个食物的位置
     function randomPosition(){
-    	foodLeft = Math.floor(Math.random()*24)*$liWidth;
-    	foodTop = Math.floor(Math.random()*12)*$liWidth;
+        foodLeft = Math.floor(Math.random()*($("#map").width()/$("li").width()))*$liWidth;
+        foodTop = Math.floor(Math.random()*($("#map").height()/$("li").height()))*$liWidth;
     }
-
     //创建一个食物
    function createFood(){
-   		randomPosition();
-   		$('ul li').each(function(i,elem){
-   			if(foodLeft == $(elem).position().left && foodTop == $(elem).position().top){
-   				randomPosition();
-   			}
-   		})
-   		var $newLi = $('<li>');
-   		$newLi.css({left:foodLeft,top:foodTop});
-   		$newLi.appendTo($('div'));
+        randomPosition();
+        $('ul li').each(function(i,elem){
+            if(foodLeft == $(elem).position().left && foodTop == $(elem).position().top){
+                randomPosition();
+            }
+        })
+        var $newLi = $('<li>');
+        $newLi.css({left:foodLeft,top:foodTop});
+        $newLi.appendTo($('#map'));
    }
-
-
+   //加分
+   function addScore(){
+        $("p span").html(3+Number($("p span").html()));
+   }
 });
 </script>
-</head>
-<body>
-<div>
-	<ul>
-		<li></li>
-		<li></li>
-		<li></li>
-	</ul>
-</div>
 </body>
 </html>
