@@ -4,35 +4,95 @@
 	<meta charset="UTF-8">
 	<title>2048</title>
 <style type="text/css">
-	body,div,ul,li{padding: 0;margin: 0;}
+	body,div,ul,li,p,span{padding: 0;margin: 0;}
 	body{
-		background-color: green;
+		/*background-color: green;*/
+	}
+	p{
+		width: 360px;
+		height: 32px;
+		line-height: 32px;
+		font-size: 30px;
+		margin: 20px auto;
 	}
 	div{
-		width: 320px;
-		margin: 100px auto;
+		width: 360px;
+		height: 360px;
+		background: #BBAFA0;
+		border: 2px solid #8E8E8E;
+		border-radius: 10px;
+		margin: 20px auto;
 	}
 	ul{
-		width: 320px;
+		width: 360px;
 	}
 	li{
 		list-style: none;
-		width: 60px;
-		height: 60px;
+		width: 80px;
+		height: 80px;
 		margin: 5px;
-		background: orange;
+		background: #CDC2B4;
 		color: white;
-		font-size: 24px;
-		line-height: 60px;
+		font-size: 36px;
+		line-height: 80px;
 		text-align: center;
 		font-weight: bold;
 		border-radius: 5px;
 		float: left;
 	}
+	li.num2{
+		background: #EEE4DA;
+		color: #333;
+	}
+	li.num4{
+		background: #EEE4DA;
+		color: #333;
+	}
+	li.num8{
+		background: #F2B179;
+		color: #F9F6F2;
+	}
+	li.num16{
+		background: #F59563;
+		color: #F9F6F2;
+	}
+	li.num32{
+		background: #F67C5F;
+		color: #F9F6F2;
+	}
+	li.num64{
+		background: #F65E3B;
+		color: #F9F6F2;
+	}
+	li.num128{
+		background: #EDCF72;
+		color: #F9F6F2;
+	}
+	li.num256{
+		background: #EDCC61;
+		color: #F9F6F2;
+	}
+	li.num512{
+		background: #EDC850;
+		color: #F9F6F2;
+	}
+	li.num1024{
+		background: #F2CE55;
+		color: #F9F6F2;
+		font-size: 30px;
+	}
+	li.num2048{
+		background: #FC9862;
+		color: #F9F6F2;
+		font-size: 30px;
+	}
 </style>
 <script type="text/javascript" src="jquery-1.10.1.min.js"></script>
 </head>
 <body>
+<p>
+	最大值：<span>0</span>
+</p>
 <div>
 	<ul>
 		<li></li>
@@ -61,7 +121,7 @@
 </div>
 <script type="text/javascript">
 $(function(){
-	//定义一个二维数组储存数据
+	// 定义一个二维数组储存数据
 	var data = new Array();	//先定义一维
 	for(var i=0;i<4;i++){
 		data[i] = new Array();	//再定义第二维	
@@ -69,7 +129,6 @@ $(function(){
 			data[i][j] = 0;
 		}	
 	}
-
 	//随机生成数字2或4
 	function cNum(){
 		var cNum = [2,4];
@@ -90,30 +149,46 @@ $(function(){
 		// });
 		var len = arr.length;
 		var num = Math.floor(Math.random()*len);
-		$('li').eq(arr[num]).html(cNum());
+		var cnum = cNum();
+		$('li').eq(arr[num]).html(cnum);
+		$("li").eq(arr[num]).attr("class","num"+cnum);
 		var x= parseInt(arr[num]/4);
 		var y = arr[num]%4;
 		data[x][y] = $('li').eq(arr[num]).html();
 	}
 	rdNum();
 	rdNum();
+	findMax();
 
+	var win = false;
 	$(document).keyup(function(ev){
+		if(win) return false;
 		if(ev.keyCode == 37){	//向左
-			to_left();
+			// to_left();
+			moveLeft();
 		}
 		if(ev.keyCode == 39){	//向右
-			to_right();
+			// to_right();
+			moveRight();
 		}
 		if(ev.keyCode == 38){	//向上
-			to_up();
+			// to_up();
+			moveUp();
 		}
 		if(ev.keyCode == 40){	//向下
-			to_down();
+			// to_down();
+			moveDown();
 		}
-		if(ev.keyCode != 116)
-			rdNum();
+		if(ev.keyCode != 116){
+			if(onOff) rdNum();
+		}
 		show();
+		var max = findMax();
+		if(max == 2048){
+			win = true;
+			alert("成功了！！！");
+		}
+
 	});
 	//向左
 	function to_left(){
@@ -231,16 +306,246 @@ $(function(){
 			}
 		}
 	}
+
+	function findPrevNum(dir,position){
+		var x = parseInt(position/4);
+		var y = position%4;
+		var prev;
+		if(dir == "down"){
+			if((x-1)<0){
+				prev = -1;
+				return prev;
+			}
+			prev = 4*(x-1)+y;
+		}
+		if(dir == "up"){
+			if((x+1)>3){
+				prev = -1;
+				return prev;
+			}
+			prev = 4*(x+1)+y;
+		}
+		if(dir == "left"){
+			if((y+1)>3){
+				prev = -1;
+				return prev;
+			}
+			prev = 4*x+(y+1);
+		}
+		if(dir == "right"){
+			if((y-1)<0){
+				prev = -1;
+				return prev;
+			}
+			prev = 4*x+(y-1);
+		}
+		var x1 = parseInt(prev/4);
+		var y1 = prev%4;
+		if(data[x1][y1]==0){
+			prev = findPrevNum(dir,prev);
+		}
+		return prev;
+	}
+	var onOff = false;
+	function moveLeft(){
+		onOff = false;
+		for(var j=0;j<4;j++){//j是行
+			var blank=3;
+			for(var i=0;i<4;i++){//i是列
+				if(data[j][i] ==0){
+					if(i<blank)
+						blank = i;
+					continue;
+				}
+				if(blank<i){
+					data[j][blank] = data[j][i];
+					data[j][i] = 0;
+					i = blank;
+					blank ++;
+					onOff = true;
+				}
+				var position = 4*j+i;
+				var prev = findPrevNum("left",position);
+				if(prev == -1) break;
+				var x = parseInt(prev/4);
+				var y = prev%4;
+				if(data[j][i] == data[x][y]){
+					data[j][i] = 2*data[j][i];
+					data[x][y] = 0;
+					blank = i+1;
+					i = y;
+				}else{
+					if(y-1 == i) continue;
+					data[j][i+1] = data[x][y];
+					data[x][y] = 0;
+					blank = i+2;
+					i = y;
+				}
+				onOff = true;
+			}
+		}
+
+	}
+
+	function moveRight(){
+		onOff = false;
+		//以向右为例
+		//把数据按行分成4组  data[0][i] data[1][i] data[2][i] data[3][i]
+		for(var j=0;j<4;j++){//j是行
+		// var j=3;
+			var blank=0;
+			for(var i=3;i>=0;i--){//i是列
+				if(data[j][i] ==0){
+					if(i>blank)
+						blank = i;
+					continue;
+				}
+				if(blank>i){
+					data[j][blank] = data[j][i];
+					data[j][i] = 0;
+					i = blank;
+					blank --;
+					onOff = true;
+				}
+				var position = 4*j+i;
+				var prev = findPrevNum("right",position);
+				if(prev == -1) break;
+				var x = parseInt(prev/4);
+				var y = prev%4;
+				if(data[j][i] == data[x][y]){
+					data[j][i] = 2*data[j][i];
+					data[x][y] = 0;
+					blank = i-1;
+					i = y;
+				}else{
+					if(y+1 == i) continue;
+					data[j][i-1] = data[x][y];
+					data[x][y] = 0;
+					blank = i-2;
+					i = y;
+				}
+				onOff = true;
+			}
+		}
+
+	}
+
+	function moveUp(){
+		onOff = false;
+		for(var i=0;i<4;i++){
+		// var i=1;
+			var blank=3;
+			for(var j=0;j<4;j++){
+				if(data[j][i] ==0){
+					if(j<blank)
+						blank = j;
+					continue;
+				}
+				if(blank<j){
+					data[blank][i] = data[j][i];
+					data[j][i] = 0;
+					j = blank;
+					blank ++;
+					onOff = true;
+				}
+				var position = 4*j+i;
+				var prev = findPrevNum("up",position);
+				if(prev == -1) break;
+				var x = parseInt(prev/4);
+				var y = prev%4;
+				if(data[j][i] == data[x][y]){
+					data[j][i] = 2*data[j][i];
+					data[x][y] = 0;
+					blank = j+1;
+					j = x;
+				}else{
+					if(x-1 == j) continue;
+					data[j+1][i] = data[x][y];
+					data[x][y] = 0;
+					blank = j+2;
+					j = x;
+				}
+				onOff = true;
+			}
+		}
+
+	}
+	function moveDown(){
+		onOff = false;
+		//以向下为例
+		//把数据按列分成4组  data[i][0] data[i][1] data[i][2] data[i][3]
+		for(var i=0;i<4;i++){//i是列
+			var blank=0;
+			for(var j=3;j>=0;j--){//j是行
+				if(data[j][i] ==0){
+					if(j>blank)
+						blank = j;
+					continue;
+				}
+				if(blank>j){
+					data[blank][i] = data[j][i];
+					data[j][i] = 0;
+					j = blank;
+					blank --;
+					onOff = true;
+				}
+				var position = 4*j+i;
+				var prev = findPrevNum("down",position);
+				if(prev == -1) break;
+				var x = parseInt(prev/4);
+				var y = prev%4;
+				if(data[j][i] == data[x][y]){
+					data[j][i] = 2*data[j][i];
+					data[x][y] = 0;
+					blank = j-1;
+					j = x;
+				}else{
+					if(x+1 == j) continue;
+					data[j-1][i] = data[x][y];
+					data[x][y] = 0;
+					blank = j-2;
+					j = x;
+				}
+				onOff = true;
+			}
+		}
+
+	}
+
 	//向方格中填充数据
 	function show(){
+		var count = 0;
 		$('li').html('');	//先把所有li的html清空，否则，在给li重新赋值时，因为会出现data[i][j]已经为0.但li的html不为零，li保留原来的值的问题
+		$("li").attr("class","");
 		for(var i=0;i<4;i++){
 			for(var j=0;j<4;j++){
 				if(data[i][j] === 0) continue;
+				count ++;
 				var _index = 4*i+j;
 				$('li').eq(_index).html(data[i][j]);
+				$("li").eq(_index).attr("class","num"+data[i][j]);
 			}
 		}
+		if(count == 4*4){
+			for(var i=0;i<4;i++){
+				for(var j=0;j<4;j++){
+					if((i+1)<4 && data[i][j]==data[i+1][j]) return;
+					if((j+1)<4 && data[i][j]==data[i][j+1]) return;
+				}
+			}
+			alert("失败了，重新开始吧~");
+		}
+	}
+	function findMax(){
+		var max = 0;
+		for(var i=0;i<4;i++){
+			for(var j=0;j<4;j++){
+				if(data[i][j] == 0) continue;
+				if(data[i][j]>max) max = data[i][j];
+			}
+		}
+		$("span").html(max);
+		return max;
 	}
 });
 </script>
